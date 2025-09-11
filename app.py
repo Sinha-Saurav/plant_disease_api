@@ -4,6 +4,7 @@ import torch
 from torchvision import transforms, models
 from PIL import Image
 import pandas as pd
+import torch.nn.functional as F
 
 treatment_df = pd.read_csv("Treatment_dataset.csv")
 classes = treatment_df["disease_Class_Name"].tolist()
@@ -63,25 +64,27 @@ if uploaded_file is not None:
     st.image(image, caption="Uploaded Leaf", use_container_width=True)
 
     if st.button("🔍 Predict Disease"):
-        # Transform & predict
         img_tensor = transform(image).unsqueeze(0)
         with torch.no_grad():
             outputs = model(img_tensor)
-            _, predicted = torch.max(outputs, 1)
+            probs = F.softmax(outputs, dim=1)
+            confidence, predicted = torch.max(probs, 1)
+            confidence = confidence.item()
             class_index = predicted.item()
 
-        # Get info
-        info = get_disease_info(class_index)
-
-        # Show results
-        st.subheader("Prediction")
-        st.write(f"**Disease:** {info['disease']}")
-        st.write(f"**Description:** {info['description']}")
-
-        st.subheader("Recommended Treatments")
-        for t in info["treatments"]:
-            st.markdown(f"- {t}")
-        st.subheader("Bio and Organic Treatments")
-        for t in info["bio_treatments"]:
-            if t.strip():
-                st.markdown(f"- {t}")
+        threshold = 0.6
+        if confidence < threshold:
+            st.error("⚠️ Invalid photo or unrecognized plant leaf. Please upload a clear leaf image.")
+        else:
+            info = get_disease_info(class_index)
+            st.subheader("Prediction")
+            st.write(f"**Disease:** {info['disease']} (Confidence: {confidence:.2f})")
+            st.write(f"**Description:** {info['description']}")
+            st.subheader("Recommended Treatments")
+            for t in info["treatments"]:
+                if t.strip():
+                    st.markdown(f"- {t}")
+            st.subheader("Bio and Organic Treatments")
+            for t in info["bio_treatments"]:
+                if t.strip():
+                    st.markdown(f"- {t}")
