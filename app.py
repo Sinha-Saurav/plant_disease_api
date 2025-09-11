@@ -39,7 +39,7 @@ def bio_organic_treatments(treatments: str):
     parts = [t.strip() for t in treatments.split(".")]
     final_parts = []
     for p in parts:
-        final_parts.extend(p)
+        final_parts.append(p)
     return final_parts
 
 
