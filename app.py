@@ -75,6 +75,7 @@ if uploaded_file is not None:
         threshold = 0.9
         if confidence < threshold:
             st.error("⚠️ Invalid photo or unrecognized plant leaf. Please upload a clear leaf image.")
+            st.write(confidence)
         else:
             info = get_disease_info(class_index)
             st.subheader("Prediction")
