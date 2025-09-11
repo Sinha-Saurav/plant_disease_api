@@ -31,16 +31,25 @@ def clean_treatments(treatments: str):
     parts = [t.strip() for t in treatments.split("OR")]
     final_parts = []
     for p in parts:
-        sub_parts = [sp.strip() for sp in p.split("\n") if sp.strip()]
+        sub_parts = [sp.strip() for sp in p.split(".") if sp.strip()]
         final_parts.extend(sub_parts)
     return final_parts
+
+def bio_organic_treatments(treatments: str):
+    parts = [t.strip() for t in treatments.split(".")]
+    final_parts = []
+    for p in parts:
+        final_parts.extend(p)
+    return final_parts
+
 
 def get_disease_info(class_index: int):
     row = treatment_df.iloc[class_index]
     return {
         "disease": prettify_label(row["disease_Class_Name"]),
         "description": row["Disease_Description"],
-        "treatments": clean_treatments(row["Treatment_Recommendations"])
+        "treatments": clean_treatments(row["Treatment_Recommendations"]),
+        "bio_treatments": bio_organic_treatments(row["Bio_Pesticides_Fertilizers"])
     }
 
 #Streamlit UI
@@ -71,4 +80,7 @@ if uploaded_file is not None:
 
         st.subheader("Recommended Treatments")
         for t in info["treatments"]:
+            st.markdown(f"- {t}")
+        st.subheader("Bio and Organic Treatments")
+        for t in info["bio_treatments"]:
             st.markdown(f"- {t}")
