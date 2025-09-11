@@ -83,4 +83,5 @@ if uploaded_file is not None:
             st.markdown(f"- {t}")
         st.subheader("Bio and Organic Treatments")
         for t in info["bio_treatments"]:
-            st.markdown(f"- {t}")
+            if t.strip():
+                st.markdown(f"- {t}")
