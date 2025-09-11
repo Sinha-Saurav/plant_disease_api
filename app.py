@@ -72,7 +72,7 @@ if uploaded_file is not None:
             confidence = confidence.item()
             class_index = predicted.item()
 
-        threshold = 0.6
+        threshold = 0.9
         if confidence < threshold:
             st.error("⚠️ Invalid photo or unrecognized plant leaf. Please upload a clear leaf image.")
         else:
