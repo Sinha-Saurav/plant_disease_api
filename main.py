@@ -5,6 +5,7 @@ import torch
 from torchvision import transforms, models
 from PIL import Image
 import pandas as pd
+import torch.nn.functional as F
 
 app = FastAPI(title="Plant Disease Detection API")
 app.add_middleware(
@@ -73,20 +74,22 @@ def get_disease_info(class_index: int):
 
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
-    # Load image
     image = Image.open(file.file).convert("RGB")
     img_tensor = transform(image).unsqueeze(0)
 
-    # Predict
     with torch.no_grad():
         outputs = model(img_tensor)
-        _, predicted = torch.max(outputs, 1)
+        probs = F.softmax(outputs, dim=1)
+        confidence, predicted = torch.max(probs, 1)
+        confidence = confidence.item()
         class_index = predicted.item()
 
-    # Get disease info
-    info = get_disease_info(class_index)
+    threshold = 0.75  # you can tune this
+    if confidence < threshold:
+        return {"prediction": "Invalid Photo", "confidence": confidence}
 
-    return {"prediction": info}
+    info = get_disease_info(class_index)
+    return {"prediction": info, "confidence": confidence}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
